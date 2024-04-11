@@ -33,9 +33,9 @@ func TestAddGetDelete(t *testing.T) {
 	// prepare
 	db, err := sql.Open("sqlite", "tracker.db") // настройте подключение к БД
 
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
+
+	defer db.Close()
 
 	store := NewParcelStore(db)
 	parcel := getTestParcel()
@@ -51,10 +51,14 @@ func TestAddGetDelete(t *testing.T) {
 	// проверьте, что значения всех полей в полученном объекте совпадают со значениями полей в переменной parcel
 	storedParcel, err := store.Get(id)
 	require.NoError(t, err)
-	require.Equal(t, parcel.Client, storedParcel.Client)
-	require.Equal(t, parcel.Status, storedParcel.Status)
-	require.Equal(t, parcel.Address, storedParcel.Address)
-	require.Equal(t, parcel.CreatedAt, storedParcel.CreatedAt)
+
+	parcel.Number = id // workaround to compare entire struct
+	require.Equal(t, parcel, storedParcel)
+
+	// require.Equal(t, parcel.Client, storedParcel.Client)
+	// require.Equal(t, parcel.Status, storedParcel.Status)
+	// require.Equal(t, parcel.Address, storedParcel.Address)
+	// require.Equal(t, parcel.CreatedAt, storedParcel.CreatedAt)
 
 	// delete
 	// удалите добавленную посылку, убедитесь в отсутствии ошибки
@@ -64,7 +68,7 @@ func TestAddGetDelete(t *testing.T) {
 
 	_, err = store.Get(id)
 	require.Error(t, err)
-	require.ErrorAs(t, err, &sql.ErrNoRows)
+	require.ErrorIs(t, err, sql.ErrNoRows)
 }
 
 // TestSetAddress проверяет обновление адреса
@@ -72,14 +76,12 @@ func TestSetAddress(t *testing.T) {
 	// prepare
 	db, err := sql.Open("sqlite", "tracker.db") // настройте подключение к БД
 
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
+
+	defer db.Close()
 
 	store := NewParcelStore(db)
 	parcel := getTestParcel()
-
-	defer db.Close()
 
 	// add
 	// добавьте новую посылку в БД, убедитесь в отсутствии ошибки и наличии идентификатора
@@ -105,9 +107,9 @@ func TestSetStatus(t *testing.T) {
 	// prepare
 	db, err := sql.Open("sqlite", "tracker.db") // настройте подключение к БД
 
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
+
+	defer db.Close()
 
 	store := NewParcelStore(db)
 	parcel := getTestParcel()
@@ -136,9 +138,9 @@ func TestGetByClient(t *testing.T) {
 	// prepare
 	db, err := sql.Open("sqlite", "tracker.db") // настройте подключение к БД
 
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.NoError(t, err)
+
+	defer db.Close()
 
 	store := NewParcelStore(db)
 
